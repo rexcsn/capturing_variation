@@ -1,0 +1,1 @@
+python src/geolocation_baseline.py --train_corpus models/no_cities.corpus --test_corpus models/no_cities.JULY.corpus --counts models/no_cities.citycounts --locations data/country_stuff.json --train_limit 200000 --test_limit 5000 --restrict all

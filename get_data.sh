@@ -1,0 +1,1 @@
+wget http://www.dirkhovy.com/portfolio/papers/download/no_cities.corpus.zip data/
