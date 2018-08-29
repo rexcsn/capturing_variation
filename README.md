@@ -1,5 +1,7 @@
 # Capturing Regional Variation with Distributed Place Representations and Geographic Retrofitting
 
+![Dialect continuum](no_cities.min200.PCA.GSA.RETROFIT-NUTS2.png)
+
 ## Abstract
 Dialects are one of the main drivers of language variation, a major challenge for natural language processing tools. 
 In most languages, dialects exist along a continuum, and are commonly discretized by combining the extent of several preselected linguistic variables.
