@@ -24,11 +24,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from gensim.models import Doc2Vec
 from matplotlib import colors
-from mpl_toolkits.basemap import Basemap
+import geopandas as gd
+import pandas as pd
 from numpy import cos, radians
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.decomposition import NMF
-# from matplotlib.colors import hsv_to_rgb, rgb_to_hsv
+
 import seaborn
 seaborn.set('paper')
 
@@ -53,12 +54,15 @@ parser.add_argument('--locations', help='location files', nargs='+')
 parser.add_argument('--max', help='maximum number of conversations required of city', default=99999999999, type=int)
 parser.add_argument('--min', help='minimum number of conversations required of city', default=200, type=int)
 parser.add_argument('--model', help='Doc2Vec model', default=None)
+parser.add_argument('--nuts', help='model uses NUTS level', choices={2, 3}, default=None, type=int)
 parser.add_argument('--pca', help='use PCA decomposition to RGB channels', action='store_true')
 parser.add_argument('--prototypes', help='find N prototypes for all cities in a cluster (requires clustering first, duh...)', default=None, type=int)
 parser.add_argument('--resolution', help='map resolution', choices={'l', 'i', 'h', 'f'}, default='l', type=str)
 parser.add_argument('--restrict', help='country restriction', choices={'AT', 'DE', 'CH', 'all'}, default=None)
 parser.add_argument('--retrofit', help='retrofit vectors on Lameli map', choices={'nuts2', 'nuts3', 'lameli'}, default=None)
 parser.add_argument('--save', help='save as PNG file', default=None)
+parser.add_argument('--shapefile', help='shapefile for map',
+                    default='/Users/dirkhovy/Dropbox/working/lowlands/GeoStats/data/nuts/NUTS_RG_03M_2010.shp')
 parser.add_argument('--show_cities', help='show city names on map', action='store_true')
 
 args = parser.parse_args()
@@ -104,17 +108,18 @@ def get_shortest_in(needle, haystack):
 
 # read in locations
 locations = {}
-for location_file in args.locations:
-    location_list = json.load(open(location_file))
-    for location in location_list:
-        try:
-            if args.restrict is None or location['country'] in args.restrict:
-                locations[location['city']] = [(location['lat'], location['lng']), location['country'], Point(location['lng'], location['lat'])]
-        except KeyError:
-            # print('wrong input format! City key should be "city"')
-            # sys.exit()
-            if args.restrict is None or location['country'] in args.restrict:
-                locations[location['location']] = [(location['lat'], location['lng']), location['country']]
+if args.nuts is None:
+    for location_file in args.locations:
+        location_list = json.load(open(location_file))
+        for location in location_list:
+            try:
+                if args.restrict is None or location['country'] in args.restrict:
+                    locations[location['city']] = [(location['lat'], location['lng']), location['country'], Point(location['lng'], location['lat'])]
+            except KeyError:
+                # print('wrong input format! City key should be "city"')
+                # sys.exit()
+                if args.restrict is None or location['country'] in args.restrict:
+                    locations[location['location']] = [(location['lat'], location['lng']), location['country']]
 
 with open(args.corpus, encoding='utf-8') as corpus_file:
     city_density = json.load(corpus_file)
@@ -129,8 +134,30 @@ for city in city_density:
     city_density_scaled[city] = ((city_density[city] - lower_bound) / divisor) * 500 + 50
 
 model = Doc2Vec.load(args.model)
-eligible_cities = [city for city in locations if city in city_density if city_density[city] >= args.min and city_density[city] <= args.max and city in model.docvecs]
+if args.nuts:
+    eligible_cities = [city for city in model.docvecs.doctags if city in city_density]# if city_density[city] >= args.min and city_density[city] <= args.max]
+    if args.restrict:
+        eligible_cities = sorted([city for city in eligible_cities if city[:2] in args.restrict])
+    print(eligible_cities)
+
+else:
+    eligible_cities = [city for city in locations if city in city_density if city_density[city] >= args.min and city_density[city] <= args.max and city in model.docvecs]
+
+# define vector order
 vectors = np.array([model.docvecs[city] for city in eligible_cities])
+
+# get map data
+df = gd.read_file(args.shapefile)
+# define area here for NUTS, so it can be used in
+if args.nuts:
+    area = df[df.NUTS_ID.isin(eligible_cities)].sort_values('NUTS_ID')
+else:
+    stat_level = 0
+    if args.country == 'german-speaking':
+        area = df[(df.STAT_LEVL_ == stat_level) & ((df.NUTS_ID.str.startswith('DE')) | (df.NUTS_ID.str.startswith('AT')) | (df.NUTS_ID.str.startswith('CH')))]
+    else:
+        area = df[(df.STAT_LEVL_ == stat_level) & (df.NUTS_ID.str.startswith(args.country))]
+
 
 if args.retrofit is not None:
     retrofitting_region_outlines = {}
@@ -208,18 +235,21 @@ cMap = 'Reds'
 
 # get clusters
 if args.clusters:
-    proximity = np.zeros((len(eligible_cities), len(eligible_cities)))
-    for i, city1 in enumerate(eligible_cities):
-        for j in range(i+1, len(eligible_cities)):
-            city2 = eligible_cities[j]
-            distance = get_shortest_in(locations[city1][0], locations[city2][0])
+    if args.nuts:
+        proximity = np.array([area.geometry.convex_hull.intersects(area.ix[r].geometry.convex_hull).values.tolist() for r in area.index], dtype=int)
+    else:
+        proximity = np.zeros((len(eligible_cities), len(eligible_cities)))
+        for i, city1 in enumerate(eligible_cities):
+            for j in range(i+1, len(eligible_cities)):
+                city2 = eligible_cities[j]
+                distance = get_shortest_in(locations[city1][0], locations[city2][0])
 
-            proximity[i, j] = distance
-            proximity[j, i] = distance
+                proximity[i, j] = distance
+                proximity[j, i] = distance
 
-    # invert distances
-    furthest = proximity.max()
-    proximity = furthest - proximity
+        # invert distances
+        furthest = proximity.max()
+        proximity = furthest - proximity
 
     cluster_colors = [cm(1. * i / args.clusters) for i in range(args.clusters)]
 
@@ -284,44 +314,35 @@ elif args.pca:
     color_names = np.clip(rgb, 0.0, 1.0)
     cMap = 'Reds'
 
-country = args.country
+# make map from shape file
 
-width = country_boxes[country][3] - country_boxes[country][2]
-height = country_boxes[country][1] - country_boxes[country][0]
-fig = plt.figure(figsize=(width, height))
-ax = fig.add_subplot(111)
+# plot background map
+fs = (int(area.geometry.bounds.maxx.max() - area.geometry.bounds.minx.min())//1.5, int(area.geometry.bounds.maxy.max() - area.geometry.bounds.miny.min()))
+fig, ax = plt.subplots(figsize=fs)
+area.plot(ax=ax, edgecolor='black', facecolor='white', linewidth=1);
 
-m = Basemap(llcrnrlat=country_boxes[country][0],
-            urcrnrlat=country_boxes[country][1],
-            llcrnrlon=country_boxes[country][2],
-            urcrnrlon=country_boxes[country][3],
-            resolution=args.resolution ,projection='merc',
-            lat_0=country_boxes[country][4],
-            lon_0=country_boxes[country][5],
-            lat_ts=country_boxes[country][6])
-            #, epsg=5520)
+if args.nuts:
+    area.plot(ax=ax, edgecolor='black', facecolor=color_names, linewidth=1, alpha=0.6);
+    area.apply(lambda x: ax.annotate(s=x.NUTS_ID, xy=x.geometry.centroid.coords[0], ha='center'),axis=1);
 
-# decorate map
-m.drawcoastlines()
-m.drawcountries()
-# z-order guarantees that the filling does not cover the scatter plot
-m.shadedrelief()
-# m.arcgisimage(service='ESRI_Imagery_World_2D', xpixels = 1500, verbose= True)
+else:
+    area.plot(ax=ax, edgecolor='black', facecolor='white', linewidth=1);
 
-x, y, z = zip(*[(locations[city][0][1], locations[city][0][0], city_density_scaled[city]) for city in eligible_cities])
+    x, y, z = zip(*[(locations[city][0][1], locations[city][0][0], city_density_scaled[city]) for city in eligible_cities])
 
-# transform coordinates into map space
-x1, y1 = m(x, y)
-m.scatter(x1, y1, z, marker='o', c=color_names, cmap=cMap, zorder=4, alpha=0.8, edgecolor='k')
+    # transform coordinates into map space
+    gdf = pd.DataFrame()
+    gdf['Coordinates'] = list(zip(x, y))
+    gdf['Coordinates'] = gdf['Coordinates'].apply(Point)
+    pts = gd.GeoDataFrame(geometry=gdf.Coordinates)
 
-if args.show_cities:
-    # add city names
-    lons, lats= zip(*[coords for city, (coords, iso, _) in locations.items() if city in eligible_cities])
-    lats1, lons1 = m(list(lats), list(lons))
+    pts.plot(ax=ax, c=color_names, zorder=4, alpha=0.6, markersize=z);
 
-    for name, xpt, ypt in zip(eligible_cities, lats1, lons1):
-        if  city_density_scaled[name] >= 250 or name in {'Basel', 'Zürich', 'Bern', 'Genf', 'Trier', 'Saarbrücken', 'Lausanne'}:
-            plt.text(xpt, ypt, name, fontsize="12", zorder=5)
+    if args.show_cities:
+        # add city names
+        for name, xpt, ypt in zip(eligible_cities, x, y):
+            if city_density_scaled[name] >= 250 or name in {'Basel', 'Zürich', 'Bern', 'Genf', 'Trier', 'Saarbrücken', 'Lausanne'}:
+                plt.text(xpt, ypt, name, fontsize="12", zorder=5)
 
 if args.save:
     print("Saving to '%s'" % (args.save), file=sys.stderr, flush=True)
