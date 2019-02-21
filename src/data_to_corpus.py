@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import bz2
 import string
+import re
 
 # project_path = "/shared/0/projects/location-inference/working-dir/textual_data"
 project_path = "."
@@ -56,7 +57,7 @@ def text_to_words(df):
 def to_corpus(df):
     dict_df = pd.DataFrame()
     dict_df = dict_df.assign(tags=(df['city']+","+df['country_code']).str.replace(' ', ''),
-                             words=df['text'])
+                             words=re.split('\W+', df['text']))
 
     dict_df.to_json(
         "%s/sample_corpus_2019-02-02" % project_path,
