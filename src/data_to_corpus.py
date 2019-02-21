@@ -22,10 +22,6 @@ def extract_info(filename):
         data[item] = []
     for line in file:
         js = json.loads(line)
-        # for item in labels:
-        #     if js[item] == "null":
-        #         all_present = False
-        #         break
         try:
             if js['user']['id'] != "null" and js['id'] != "null" \
                     and js['text'] != "null" and js['geo']['coordinates'][0][0] != "null" \
