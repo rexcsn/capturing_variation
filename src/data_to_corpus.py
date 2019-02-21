@@ -38,8 +38,8 @@ def extract_info(filename):
     filtered = filtered.assign(user_id=df['user'].apply(pd.Series)['id'],
                                tweet_id=df['id'],
                                text=df['text'],
-                               lat=df['geo'].apply(pd.Series)['coordinates'][0][0],
-                               lon=df['geo'].apply(pd.Series)['coordinates'][0][1],
+                               lat=df['geo'].apply(pd.Series)['coordinates'][0],
+                               lon=df['geo'].apply(pd.Series)['coordinates'][1],
                                city=df['place'].apply(pd.Series)['full_name'],
                                country_code=df['place'].apply(pd.Series)['country_code'],
                                source=df['source']
