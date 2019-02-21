@@ -16,11 +16,12 @@ project_path = "."
 def extract_info(filename):
     file = bz2.BZ2File(filename)
     df = pd.DataFrame()
+    collect = []
     for line in file:
         dict = json.loads(line)
-        df = df.append(pd.DataFrame.from_dict(dict))
-        print(np.shape(df))
+        collect = collect.append(dict)
 
+    df = pd.DataFrame(collect)
     df = df[['user', 'text', 'id', 'source', 'place', 'geo']]
     print(np.shape(df))
     exit(1)
