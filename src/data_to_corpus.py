@@ -7,16 +7,25 @@ from itertools import islice, count
 import pandas as pd
 import numpy as np
 import bz2
-import json
+import jsonlines
 import string
 
-project_path = "/shared/0/projects/location-inference/working-dir/textual_data"
+# project_path = "/shared/0/projects/location-inference/working-dir/textual_data"
+project_path = "."
 
 
 def extract_info(filename):
-    file = bz2.open(filename)
-    df = pd.read_json(file, orient='split')
+    file = bz2.BZ2File(filename)
+    df = pd.DataFrame()
+    for line in file:
+        dict = json.loads(line)
+        df = df.append(pd.DataFrame.from_dict(dict))
+        print(np.shape(df))
+
     df = df[['user', 'text', 'id', 'source', 'place', 'geo']]
+    print(np.shape(df))
+    exit(1)
+
 
     filtered = pd.DataFrame(
         columns=['user_id', 'tweet_id', 'text', 'lat', 'lon', 'city', 'country_code', 'source'])
@@ -60,7 +69,9 @@ def to_corpus(df):
 
 
 def main():
-    df = extract_info("/twitter-turbo/decahose/raw/decahose.2019-02-02.p1.bz2")
+    # df = extract_info("/twitter-turbo/decahose/raw/decahose.2019-02-02.p1.bz2")
+    # df = extract_info("./sample_text.txt.bz2")
+    df = extract_info("./baby.txt.bz2")
     to_corpus(df)
 
 
