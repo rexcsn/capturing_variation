@@ -53,7 +53,7 @@ def text_to_words(df):
 
 def to_corpus(df):
     dict_df = pd.DataFrame()
-    dict_df.assign(tags=df['fullname']+df['country_code'])
+    dict_df.assign(tags=df['city']+df['country_code'])
     dict_df.assign(words=df['text'])
 
     print(dict_df.iloc[0])
