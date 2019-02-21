@@ -23,7 +23,7 @@ def extract_info(filename):
     df = pd.DataFrame(collect)
     df = df[['user', 'text', 'id', 'source', 'place', 'geo']]
 
-    df = df.loc[df['geo'] is not None]
+    df = df.loc[df.geo.notnull()]
 
     filtered = pd.DataFrame(
         columns=['user_id', 'tweet_id', 'text', 'lat', 'lon', 'city', 'country_code', 'source'])
