@@ -25,6 +25,8 @@ def extract_info(filename):
 
     df = df.loc[df.geo.notnull()]
 
+    print(df)
+
     filtered = pd.DataFrame(
         columns=['user_id', 'tweet_id', 'text', 'lat', 'lon', 'city', 'country_code', 'source'])
 
