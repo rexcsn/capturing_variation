@@ -31,7 +31,7 @@ def extract_info(filename):
     df = pd.DataFrame(collect)
     df = df[labels]
 
-    df = df[df['geo'] != "null"]
+    df = df[df['geo'].isnotnull()]
 
     filtered = pd.DataFrame()
 
