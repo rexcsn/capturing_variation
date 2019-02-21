@@ -26,8 +26,6 @@ def extract_info(filename):
 
     df = df.loc[df.geo.notnull()]
 
-    print(df)
-
     filtered = pd.DataFrame()
 
     filtered = filtered.assign(user_id=df['user'].apply(pd.Series)['id'],
