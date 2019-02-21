@@ -22,7 +22,7 @@ def extract_info(filename):
         all_present = True
         js = json.loads(line)
         for item in labels:
-            if item not in js:
+            if js[item] == "null":
                 all_present = False
                 break
         if all_present:
@@ -30,8 +30,6 @@ def extract_info(filename):
 
     df = pd.DataFrame(collect)
     df = df[labels]
-
-    df = df[df['geo'].notnull()]
 
     filtered = pd.DataFrame()
 
