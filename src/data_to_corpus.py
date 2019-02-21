@@ -9,8 +9,8 @@ import numpy as np
 import bz2
 import string
 
-project_path = "/shared/0/projects/location-inference/working-dir/textual_data"
-# project_path = "."
+# project_path = "/shared/0/projects/location-inference/working-dir/textual_data"
+project_path = "."
 
 
 def extract_info(filename):
@@ -28,13 +28,13 @@ def extract_info(filename):
     filtered = pd.DataFrame(
         columns=['user_id', 'tweet_id', 'text', 'lat', 'lon', 'city', 'country_code', 'source'])
 
-    filtered.assign(user_id=df['user']['id'])
+    filtered.assign(user_id=df['user'].apply(pd.Series)['id'])
     filtered.assign(tweet_id=df['id'])
     filtered.assign(text=df['text'])
-    filtered.assign(lat=df['geo']['coordinates'][0])
-    filtered.assign(lon=df['geo']['coordinates'][1])
+    filtered.assign(lat=df['geo'].apply(pd.Series)['coordinates'][0][0])
+    filtered.assign(lon=df['geo'].apply(pd.Series)['coordinates'][0][1])
     filtered.assign(city=df['place']['full_name'])
-    filtered.assign(country_code=df['place']['country_code'])
+    filtered.assign(country_code=df['place'].apply(pd.Series)['country_code'])
     filtered.assign(source=df['source'])
 
     filtered.to_csv(
@@ -67,9 +67,9 @@ def to_corpus(df):
 
 
 def main():
-    df = extract_info("/twitter-turbo/decahose/raw/decahose.2019-02-02.p1.bz2")
+    # df = extract_info("/twitter-turbo/decahose/raw/decahose.2019-02-02.p1.bz2")
     # df = extract_info("./sample_text.txt.bz2")
-    # df = extract_info("./baby.txt.bz2")
+    df = extract_info("./baby.txt.bz2")
     to_corpus(df)
 
 
