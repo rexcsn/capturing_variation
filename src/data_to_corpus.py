@@ -57,7 +57,7 @@ def text_to_words(df):
 def to_corpus(df):
     dict_df = pd.DataFrame()
     dict_df = dict_df.assign(tags=(df['city']+","+df['country_code']).str.replace(' ', ''),
-                             words=re.split('\W+', df['text']))
+                             words=re.split('\W+', df['text'].str))
 
     dict_df.to_json(
         "%s/sample_corpus_2019-02-02" % project_path,
