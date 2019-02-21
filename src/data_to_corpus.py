@@ -15,7 +15,7 @@ project_path = "."
 
 
 def extract_info(filename):
-    labels = ['user', 'text', 'id', 'source', 'place', 'geo']
+    labels = ['user_id', 'tweet_id', 'text', 'lat', 'lon', 'city', 'country_code', 'source']
     file = bz2.BZ2File(filename)
     data = {}
     for item in labels:
@@ -32,17 +32,17 @@ def extract_info(filename):
                     and js['geo']['coordinates'][0][1] != "null" and js['place']['full_name'] != "null" \
                     and js['place']['country_code'] != "null" and js['source'] != "null":
 
-                data['user_id'] = js['user']['id']
-                data['tweet_id'] = js['id']
-                data['text'] = js['text']
-                data['lat'] = js['geo']['coordinates'][0][0]
-                data['lon'] = js['geo']['coordinates'][0][1]
-                data['city'] = js['place']['full_name']
-                data['country_code'] = js['place']['country_code']
-                data['source'] = js['source']
+                data['user_id'].append(js['user']['id'])
+                data['tweet_id'].append(js['id'])
+                data['text'].append(js['text'])
+                data['lat'].append(js['geo']['coordinates'][0][0])
+                data['lon'].append(js['geo']['coordinates'][0][1])
+                data['city'].append(js['place']['full_name'])
+                data['country_code'].append(js['place']['country_code'])
+                data['source'].append(js['source'])
 
         except Exception:
-            pass
+            continue
 
     filtered = pd.DataFrame(data)
     # df = df[labels]
