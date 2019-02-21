@@ -43,7 +43,7 @@ def extract_info(filename):
             "%s/extracted_2019-02-02" % project_path)
         print("Saved df to %s/extracted_2019-02-02 !!!" % project_path)
     except Exception as e:
-        print("Exception! Message: %s" % e)
+        print(e)
         pass
 
     return filtered
@@ -67,7 +67,7 @@ def to_corpus(df):
             orient='records')
         print("Saved corpus to %s/sample_corpus_2019-02-02 !!!" % project_path)
     except Exception as e:
-        print("Exception! Message: %s" % e)
+        print(e)
         pass
 
     return dict_df
