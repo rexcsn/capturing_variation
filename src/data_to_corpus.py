@@ -22,7 +22,7 @@ def extract_info(filename):
         all_present = True
         js = json.loads(line)
         for item in labels:
-            if item not in json:
+            if item not in js:
                 all_present = False
                 break
         if all_present:
