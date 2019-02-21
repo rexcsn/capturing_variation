@@ -22,9 +22,8 @@ def extract_info(filename):
 
     df = pd.DataFrame(collect)
     df = df[['user', 'text', 'id', 'source', 'place', 'geo']]
-    print(np.shape(df))
-    exit(1)
 
+    df = df.loc[df['geo'] is not None]
 
     filtered = pd.DataFrame(
         columns=['user_id', 'tweet_id', 'text', 'lat', 'lon', 'city', 'country_code', 'source'])
@@ -37,8 +36,6 @@ def extract_info(filename):
     filtered.assign(city=df['place']['full_name'])
     filtered.assign(country_code=df['place']['country_code'])
     filtered.assign(source=df['source'])
-
-    print(filtered.iloc[0])
 
     filtered.to_csv(
         "%s/extracted_2019-02-02" % project_path)
