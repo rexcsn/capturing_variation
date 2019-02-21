@@ -30,14 +30,15 @@ def extract_info(filename):
     filtered = pd.DataFrame(
         columns=['user_id', 'tweet_id', 'text', 'lat', 'lon', 'city', 'country_code', 'source'])
 
-    filtered.assign(user_id=df['user'].apply(pd.Series)['id'])
-    filtered.assign(tweet_id=df['id'])
-    filtered.assign(text=df['text'])
-    filtered.assign(lat=df['geo'].apply(pd.Series)['coordinates'][0][0])
-    filtered.assign(lon=df['geo'].apply(pd.Series)['coordinates'][0][1])
-    filtered.assign(city=df['place'].apply(pd.Series)['full_name'])
-    filtered.assign(country_code=df['place'].apply(pd.Series)['country_code'])
-    filtered.assign(source=df['source'])
+    filtered.assign(user_id=df['user'].apply(pd.Series)['id'],
+                    tweet_id=df['id'],
+                    text=df['text'],
+                    lat=df['geo'].apply(pd.Series)['coordinates'][0][0],
+                    lon=df['geo'].apply(pd.Series)['coordinates'][0][1],
+                    city=df['place'].apply(pd.Series)['full_name'],
+                    country_code=df['place'].apply(pd.Series)['country_code'],
+                    source=df['source']
+                    )
 
     filtered.to_csv(
         "%s/extracted_2019-02-02" % project_path)
@@ -55,8 +56,8 @@ def text_to_words(df):
 
 def to_corpus(df):
     dict_df = pd.DataFrame()
-    dict_df.assign(tags=df['city']+df['country_code'])
-    dict_df.assign(words=df['text'])
+    dict_df.assign(tags=df['city']+df['country_code'],
+                   words=df['text'])
 
     dict_df.to_json(
         "%s/sample_corpus_2019-02-02" % project_path,
