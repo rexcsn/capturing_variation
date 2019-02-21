@@ -15,14 +15,21 @@ project_path = "."
 
 
 def extract_info(filename):
+    labels = ['user', 'text', 'id', 'source', 'place', 'geo']
     file = bz2.BZ2File(filename)
     collect = []
     for line in file:
+        all_present = True
         js = json.loads(line)
-        collect.append(js)
+        for item in labels:
+            if item not in json:
+                all_present = False
+                break
+        if all_present:
+            collect.append(js)
 
     df = pd.DataFrame(collect)
-    df = df[['user', 'text', 'id', 'source', 'place', 'geo']]
+    df = df[labels]
 
     df = df[df['geo'] != "null"]
 
