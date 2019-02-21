@@ -33,7 +33,7 @@ def extract_info(filename):
     filtered.assign(text=df['text'])
     filtered.assign(lat=df['geo'].apply(pd.Series)['coordinates'][0][0])
     filtered.assign(lon=df['geo'].apply(pd.Series)['coordinates'][0][1])
-    filtered.assign(city=df['place']['full_name'])
+    filtered.assign(city=df['place'].apply(pd.Series)['full_name'])
     filtered.assign(country_code=df['place'].apply(pd.Series)['country_code'])
     filtered.assign(source=df['source'])
 
