@@ -7,7 +7,6 @@ from itertools import islice, count
 import pandas as pd
 import numpy as np
 import bz2
-import jsonlines
 import string
 
 # project_path = "/shared/0/projects/location-inference/working-dir/textual_data"
