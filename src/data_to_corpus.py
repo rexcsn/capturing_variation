@@ -24,7 +24,7 @@ def extract_info(filename):
     df = pd.DataFrame(collect)
     df = df[['user', 'text', 'id', 'source', 'place', 'geo']]
 
-    df = df[df['geo'].notnull()]
+    df = df[df['geo'] != "null"]
 
     filtered = pd.DataFrame()
 
