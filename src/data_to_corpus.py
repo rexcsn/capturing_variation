@@ -17,31 +17,47 @@ project_path = "."
 def extract_info(filename):
     labels = ['user', 'text', 'id', 'source', 'place', 'geo']
     file = bz2.BZ2File(filename)
-    collect = []
+    data = {}
+    for item in labels:
+        data[item] = []
     for line in file:
-        all_present = True
         js = json.loads(line)
-        for item in labels:
-            if js[item] == "null":
-                all_present = False
-                break
-        if all_present:
-            collect.append(js)
+        # for item in labels:
+        #     if js[item] == "null":
+        #         all_present = False
+        #         break
+        try:
+            if js['user']['id'] != "null" and js['id'] != "null" \
+                    and js['text'] != "null" and js['geo']['coordinates'][0][0] != "null" \
+                    and js['geo']['coordinates'][0][1] != "null" and js['place']['full_name'] != "null" \
+                    and js['place']['country_code'] != "null" and js['source'] != "null":
 
-    df = pd.DataFrame(collect)
-    df = df[labels]
+                data['user_id'] = js['user']['id']
+                data['tweet_id'] = js['id']
+                data['text'] = js['text']
+                data['lat'] = js['geo']['coordinates'][0][0]
+                data['lon'] = js['geo']['coordinates'][0][1]
+                data['city'] = js['place']['full_name']
+                data['country_code'] = js['place']['country_code']
+                data['source'] = js['source']
 
-    filtered = pd.DataFrame()
+        except Exception:
+            pass
 
-    filtered = filtered.assign(user_id=df['user'].apply(pd.Series)['id'],
-                               tweet_id=df['id'],
-                               text=df['text'],
-                               lat=df['geo'].apply(pd.Series)['coordinates'][0],
-                               lon=df['geo'].apply(pd.Series)['coordinates'][1],
-                               city=df['place'].apply(pd.Series)['full_name'],
-                               country_code=df['place'].apply(pd.Series)['country_code'],
-                               source=df['source']
-                               )
+    filtered = pd.DataFrame(data)
+    # df = df[labels]
+    #
+    # filtered = pd.DataFrame()
+    #
+    # filtered = filtered.assign(user_id=df['user'].apply(pd.Series)['id'],
+    #                            tweet_id=df['id'],
+    #                            text=df['text'],
+    #                            lat=df['geo'].apply(pd.Series)['coordinates'][0],
+    #                            lon=df['geo'].apply(pd.Series)['coordinates'][1],
+    #                            city=df['place'].apply(pd.Series)['full_name'],
+    #                            country_code=df['place'].apply(pd.Series)['country_code'],
+    #                            source=df['source']
+    #                            )
 
     filtered.to_csv(
         "%s/extracted_2019-02-02" % project_path)
