@@ -28,6 +28,9 @@ def extract_info(filename):
     filtered = pd.DataFrame(
         columns=['user_id', 'tweet_id', 'text', 'lat', 'lon', 'city', 'country_code', 'source'])
 
+    print(df.iloc[0]['user'])
+    print(df.iloc[0]['text'])
+
     filtered.assign(user_id=df['user']['id'])
     filtered.assign(tweet_id=df['id'])
     filtered.assign(text=df['text'])
