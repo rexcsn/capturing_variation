@@ -24,15 +24,15 @@ def extract_info(filename):
         js = json.loads(line)
         try:
             if js['user']['id'] != "null" and js['id'] != "null" \
-                    and js['text'] != "null" and js['geo']['coordinates'][0][0] != "null" \
-                    and js['geo']['coordinates'][0][1] != "null" and js['place']['full_name'] != "null" \
+                    and js['text'] != "null" and js['geo']['coordinates'][0] != "null" \
+                    and js['geo']['coordinates'][1] != "null" and js['place']['full_name'] != "null" \
                     and js['place']['country_code'] != "null" and js['source'] != "null":
 
                 data['user_id'].append(js['user']['id'])
                 data['tweet_id'].append(js['id'])
                 data['text'].append(js['text'])
-                data['lat'].append(js['geo']['coordinates'][0][0])
-                data['lon'].append(js['geo']['coordinates'][0][1])
+                data['lat'].append(js['geo']['coordinates'][0])
+                data['lon'].append(js['geo']['coordinates'][1])
                 data['city'].append(js['place']['full_name'])
                 data['country_code'].append(js['place']['country_code'])
                 data['source'].append(js['source'])
