@@ -66,6 +66,7 @@ def build_test_dict(df):
             user_to_ll[user_id]['lat'] = 0
             user_to_ll[user_id]['lon'] = 0
 
+        # Use user's average lat lon as ground truth?
         user_to_ll[user_id]['num_entries'] += 1
         user_to_ll[user_id]['lat'] \
             = (user_to_ll[user_id]['lat']
@@ -203,7 +204,7 @@ def main():
     # get training, val, test sets
     train_df, val_df, test_df = split_train_val_test(df)
 
-    # get training corpus
+    # get training corpus, location to latlon map
     train_corpus, loc_to_ll = get_training_corpus_and_loc_to_ll(train_df)
 
     # build dicts for validation set
