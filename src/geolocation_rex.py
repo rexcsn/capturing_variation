@@ -17,8 +17,11 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from copy import deepcopy
 import fiona
 from shapely.geometry import shape, Point
+import nltk
+nltk.download('punkt')
 
 WORKING_DIR = "/shared/0/projects/location-inference/working-dir/textual_data/training/"
+# WORKING_DIR = "./"
 
 EARTH_RADIUS = 6371
 def get_distance(lat_lon_pair1, lat_lon_pair2):
@@ -45,9 +48,9 @@ def build_test_dict(df):
     user_to_ll = {}
     for index, row in df.iterrows():
         complete_city_name = (
-            row['city']+","+row['country_code']).replace(' ', '')
+            row['city']+","+row['country_code']).replace(' ', '').lower()
         # build tweet_id to info dict
-        words_in_tweet = row['text'].split(r'\W+')
+        words_in_tweet = nltk.word_tokenize(row['text'].lower())
         tweet_id = row['tweet_id']
         tweet_id_to_corpus_list[tweet_id] = {}
         tweet_id_to_corpus_list[tweet_id]['words_in_tweet'] = words_in_tweet
@@ -99,7 +102,7 @@ def get_training_corpus_and_loc_to_ll(train_df):
     # build loc_to_ll dict
     for index, row in train_df.iterrows():
         complete_city_name = (
-            row['city']+","+row['country_code']).replace(' ', '')
+            row['city']+","+row['country_code']).replace(' ', '').lower()
         if complete_city_name not in loc_to_ll:
             loc_to_ll[complete_city_name] = {}
             loc_to_ll[complete_city_name]['num_entries'] = 0
@@ -118,9 +121,9 @@ def get_training_corpus_and_loc_to_ll(train_df):
                + float(row['lon'])) \
             / loc_to_ll[complete_city_name]['num_entries']
 
-        words_in_tweet = row['text'].split(r'\W+')
+        words_in_tweet = nltk.word_tokenize(row['text'].lower())
         corpus_list.append(TaggedDocument(
-            words_in_tweet, tags=complete_city_name))
+            words_in_tweet, tags=[complete_city_name]))
 
     return corpus_list, loc_to_ll
 
@@ -131,14 +134,12 @@ def train_Doc2Vec(corpus, window=15, min_occurrence=10,
     model = Doc2Vec(size=300, window=window, min_count=min_occurrence, negative=5, hs=0,
                     workers=cores, iter=10, sample=0.00001, dm=0, dbow_words=1)
 
+    # print(corpus)
     print('\nbuilding model')
     model.build_vocab(corpus)
     print('\ntraining model')
-    model.train(corpus)
+    model.train(corpus, total_examples=model.corpus_count, epochs=3)
     print('DONE training!')
-
-    model.delete_temporary_training_data(
-        keep_doctags_vectors=True, keep_inference=True)
 
     print("Saving model to %strain.model" % WORKING_DIR)
     model.save('%strained.model' % WORKING_DIR)
@@ -153,7 +154,8 @@ def infer_val(model, tweet_id_to_corpus_list, tweet_id_to_user, loc_to_ll):
         corpus = tweet_id_to_corpus_list[tweet_id]['words_in_tweet']
         inferred_vector = model.infer_vector(corpus)
         # get the tag of the most similar vector
-        tag, score = model.docvecs.most_similar([inferred_vector], topn=1)
+        # print(model.docvecs.most_similar([inferred_vector], topn=1))
+        tag, score = model.docvecs.most_similar([inferred_vector], topn=1)[0]
         tweet_id_to_pred[tweet_id] = tag
         # append tag to user's prediction list
         user_id = tweet_id_to_user[tweet_id]
@@ -163,7 +165,10 @@ def infer_val(model, tweet_id_to_corpus_list, tweet_id_to_user, loc_to_ll):
     
     # set the most frequent tag as user's predicted location
     for user_id in user_to_pred:
-        user_to_pred[user_id] = mode(user_to_pred[user_id])
+        # print(user_id)
+        user_to_pred[user_id] = median(user_to_pred[user_id])
+        # print(user_to_pred[user_id])
+        # exit(1)
     
 
     return tweet_id_to_pred, user_to_pred
@@ -172,6 +177,7 @@ def infer_val(model, tweet_id_to_corpus_list, tweet_id_to_user, loc_to_ll):
 def evaluate_pred(loc_to_ll, user_to_pred, user_to_ll):
     error_list = []
     for user_id in user_to_pred:
+        # print(user_id)
         predicted_tag = user_to_pred[user_id]
         predicted_ll = loc_to_ll[predicted_tag]
         actual_ll = user_to_ll[user_id]
@@ -198,7 +204,9 @@ def main():
     # extracted contains user_id, tweet_id, text, lat, lon, city, country_code, source
 
     df = read_in_extracted(
-        "/shared/0/projects/location-inference/working-dir/textual_data/extracted_small")
+        "/shared/0/projects/location-inference/working-dir/textual_data/extracted_small_2000")
+    # df = read_in_extracted(
+    #     "./extracted_small")
 
     # get training, val, test sets
     train_df, val_df, test_df = split_train_val_test(df)
@@ -214,13 +222,15 @@ def main():
     model = train_Doc2Vec(train_corpus)  # save model somewhere
 
     # infer on validation
-    user_to_pred = infer_val(model, val_tweet_id_to_corpus_list, val_tweet_id_to_user, loc_to_ll)
+    tweet_id_to_pred, user_to_pred = infer_val(model, val_tweet_id_to_corpus_list, val_tweet_id_to_user, loc_to_ll)
 
     # Evaluate validation prediction
     pred_error = evaluate_pred(loc_to_ll, user_to_pred, user_to_ll)
 
     # Get accuracy @ 161km and median error
     acc_161, median_error = analyze_error(pred_error)
+
+    print("ACC @ 161: %s, median_error: %s" % (acc_161, median_error))
 
 
 if __name__ == "__main__":
