@@ -185,7 +185,7 @@ def evaluate_pred(loc_to_ll, user_to_pred, user_to_ll):
         predicted_tag = user_to_pred[user_id]
         predicted_ll = loc_to_ll[predicted_tag]
         actual_ll = user_to_ll[user_id]
-        error = get_distance((predicted_ll['lat'], predicted_ll['lon']), (actual_ll['lat'], actual_ll['lon']))
+        error = float(get_distance((predicted_ll['lat'], predicted_ll['lon']), (actual_ll['lat'], actual_ll['lon'])))
         error_list.append(error)
 
     return error
@@ -199,9 +199,9 @@ def analyze_error(pred_error):
             within += 1
     
     acc_161 = within/float(total)
-    median_error = median(pred_error)
-    print("Min: %s" % min(pred_error))
-    print("Max: %s" % min(pred_error))
+    median_error = np.median(pred_error)
+    print("Min: %s" % np.amin(pred_error))
+    print("Max: %s" % np.amax(pred_error))
 
     return acc_161, median_error
 
