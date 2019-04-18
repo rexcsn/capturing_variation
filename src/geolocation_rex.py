@@ -20,7 +20,7 @@ from shapely.geometry import shape, Point
 import nltk
 nltk.download('punkt')
 
-NUM_EPOCH = 10
+NUM_EPOCH = 100
 EXTRACTED = "extracted_2019-02-02"
 # EXTRACTED = "extracted_small_2000"
 WORKING_DIR = "/shared/0/projects/location-inference/working-dir/textual_data/training/"
