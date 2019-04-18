@@ -188,7 +188,7 @@ def evaluate_pred(loc_to_ll, user_to_pred, user_to_ll):
         error = float(get_distance((predicted_ll['lat'], predicted_ll['lon']), (actual_ll['lat'], actual_ll['lon'])))
         error_list.append(error)
 
-    return error
+    return error_list
 
 
 def analyze_error(pred_error):
