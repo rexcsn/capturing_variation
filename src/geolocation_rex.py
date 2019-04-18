@@ -48,7 +48,7 @@ def build_test_dict(df):
     user_to_ll = {}
     for index, row in df.iterrows():
         complete_city_name = (
-            row['city']+","+row['country_code']).replace(' ', '').lower()
+            row['city']+","+str(row['country_code'])).replace(' ', '').lower()
         # build tweet_id to info dict
         words_in_tweet = nltk.word_tokenize(row['text'].lower())
         tweet_id = row['tweet_id']
@@ -102,7 +102,7 @@ def get_training_corpus_and_loc_to_ll(train_df):
     # build loc_to_ll dict
     for index, row in train_df.iterrows():
         complete_city_name = (
-            row['city']+","+row['country_code']).replace(' ', '').lower()
+            row['city']+","+str(row['country_code'])).replace(' ', '').lower()
         if complete_city_name not in loc_to_ll:
             loc_to_ll[complete_city_name] = {}
             loc_to_ll[complete_city_name]['num_entries'] = 0
