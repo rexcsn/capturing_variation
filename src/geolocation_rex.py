@@ -215,7 +215,7 @@ def main():
     model = train_Doc2Vec(train_corpus)  # save model somewhere
 
     # infer on validation
-    user_to_pred = infer_val(model, val_tweet_id_to_corpus_list, tweet_id_to_user, loc_to_ll)
+    user_to_pred = infer_val(model, val_tweet_id_to_corpus_list, val_tweet_id_to_user, loc_to_ll)
 
     # Evaluate validation prediction
     pred_error = evaluate_pred(loc_to_ll, user_to_pred, user_to_ll)
