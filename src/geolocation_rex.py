@@ -20,6 +20,9 @@ from shapely.geometry import shape, Point
 import nltk
 nltk.download('punkt')
 
+NUM_EPOCH = 10
+EXTRACTED = "extracted_2019-02-02"
+# EXTRACTED = "extracted_small_2000"
 WORKING_DIR = "/shared/0/projects/location-inference/working-dir/textual_data/training/"
 # WORKING_DIR = "./"
 
@@ -90,8 +93,8 @@ def build_test_dict(df):
 
 def split_train_val_test(df, test_ratio=0.1, val_ratio=0.2):
 
-    train_val, test_df = train_test_split(df, test_size=test_ratio)
-    train_df, val_df = train_test_split(df, test_size=val_ratio)
+    train_val, test_df = train_test_split(df, test_size=test_ratio, random_state=50)
+    train_df, val_df = train_test_split(df, test_size=val_ratio, random_state=50)
 
     return train_df, val_df, test_df
 
@@ -132,15 +135,16 @@ def train_Doc2Vec(corpus, window=15, min_occurrence=10,
                   cores=int(multiprocessing.cpu_count()/2)):
 
     model = Doc2Vec(size=300, window=window, min_count=min_occurrence, negative=5, hs=0,
-                    workers=cores, iter=10, sample=0.00001, dm=0, dbow_words=1)
+                    workers=cores, iter=10, sample=0.00001, dm=0, dbow_words=1, seed=50)
 
     # print(corpus)
     print('\nbuilding model')
     model.build_vocab(corpus)
     print('\ntraining model')
-    model.train(corpus, total_examples=model.corpus_count, epochs=3)
+    model.train(corpus, total_examples=model.corpus_count, epochs=NUM_EPOCH)
     print('DONE training!')
 
+    model.delete_temporary_training_data(keep_doctags_vectors=True, keep_inference=True)
     print("Saving model to %strain.model" % WORKING_DIR)
     model.save('%strained.model' % WORKING_DIR)
 
@@ -161,12 +165,12 @@ def infer_val(model, tweet_id_to_corpus_list, tweet_id_to_user, loc_to_ll):
         user_id = tweet_id_to_user[tweet_id]
         if user_id not in user_to_pred:
             user_to_pred[user_id] = []
-        user_to_pred[user_id].append(tag)
+        user_to_pred[user_id].append(str(tag))
     
     # set the most frequent tag as user's predicted location
     for user_id in user_to_pred:
         # print(user_id)
-        user_to_pred[user_id] = median(user_to_pred[user_id])
+        user_to_pred[user_id] = median(user_to_pred[user_id]) if len(user_to_pred[user_id]) % 2 != 0 else median(user_to_pred[user_id][1:])
         # print(user_to_pred[user_id])
         # exit(1)
     
@@ -204,9 +208,9 @@ def main():
     # extracted contains user_id, tweet_id, text, lat, lon, city, country_code, source
 
     df = read_in_extracted(
-        "/shared/0/projects/location-inference/working-dir/textual_data/extracted_small_2000")
+        "/shared/0/projects/location-inference/working-dir/textual_data/%s" % EXTRACTED)
     # df = read_in_extracted(
-    #     "./extracted_small")
+    #     "./extracted_small_2000")
 
     # get training, val, test sets
     train_df, val_df, test_df = split_train_val_test(df)
