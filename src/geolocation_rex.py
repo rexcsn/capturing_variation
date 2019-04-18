@@ -20,6 +20,7 @@ from shapely.geometry import shape, Point
 
 WORKING_DIR = "/shared/0/projects/location-inference/working-dir/textual_data/training/"
 
+EARTH_RADIUS = 6371
 def get_distance(lat_lon_pair1, lat_lon_pair2):
     
     dlat = np.radians(lat_lon_pair1[0]) - np.radians(lat_lon_pair2[0])
