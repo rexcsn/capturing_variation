@@ -45,9 +45,9 @@ def build_test_dict(df):
     user_to_ll = {}
     for index, row in df.iterrows():
         complete_city_name = (
-            row['city']+","+row['country_code']).str.replace(' ', '')
+            row['city']+","+row['country_code']).replace(' ', '')
         # build tweet_id to info dict
-        words_in_tweet = row['text'].str.split(r'\W+')
+        words_in_tweet = row['text'].split(r'\W+')
         tweet_id = row['tweet_id']
         tweet_id_to_corpus_list[tweet_id] = {}
         tweet_id_to_corpus_list[tweet_id]['words_in_tweet'] = words_in_tweet
@@ -99,7 +99,7 @@ def get_training_corpus_and_loc_to_ll(train_df):
     # build loc_to_ll dict
     for index, row in train_df.iterrows():
         complete_city_name = (
-            row['city']+","+row['country_code']).str.replace(' ', '')
+            row['city']+","+row['country_code']).replace(' ', '')
         if complete_city_name not in loc_to_ll:
             loc_to_ll[complete_city_name] = {}
             loc_to_ll[complete_city_name]['num_entries'] = 0
@@ -118,7 +118,7 @@ def get_training_corpus_and_loc_to_ll(train_df):
                + float(row['lon'])) \
             / loc_to_ll[complete_city_name]['num_entries']
 
-        words_in_tweet = row['text'].str.split(r'\W+')
+        words_in_tweet = row['text'].split(r'\W+')
         corpus_list.append(TaggedDocument(
             words_in_tweet, tags=complete_city_name))
 
