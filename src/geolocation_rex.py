@@ -200,6 +200,8 @@ def analyze_error(pred_error):
     
     acc_161 = within/float(total)
     median_error = median(pred_error)
+    print("Min: %s" % min(pred_error))
+    print("Max: %s" % min(pred_error))
 
     return acc_161, median_error
 

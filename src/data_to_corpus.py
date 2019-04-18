@@ -10,11 +10,11 @@ import bz2
 import string
 import re
 
-project_path = "/shared/0/projects/location-inference/working-dir/textual_data"
+project_path = "/shared/0/projects/location-inference/working-dir/textual_data/"
 # project_path = "."
 
 
-def extract_info(filename):
+def extract_info(filename, name):
     labels = ['user_id', 'tweet_id', 'text', 'lat', 'lon', 'city', 'country_code', 'source']
     file = bz2.BZ2File(filename)
     data = {}
@@ -56,8 +56,8 @@ def extract_info(filename):
     #                            )
 
     filtered.to_csv(
-        "%s/extracted_2019-02-02" % project_path)
-    print("Saved df to %s/extracted_2019-02-02 !!!" % project_path)
+        "%sextracted_%s" % (project_path, name))
+    print("Saved df to %sextracted_%s !!!" % (project_path, name))
 
     return filtered
 
@@ -83,10 +83,12 @@ def to_corpus(df):
 
 
 def main():
-    df = extract_info("/twitter-turbo/decahose/raw/decahose.2019-02-02.p1.bz2")
+    for i in range(2, 9):
+        df = extract_info("/twitter-turbo/decahose/raw/decahose.2019-02-0%s.p1.bz2" % i, "2019-02-0%s.p1")
+        df = extract_info("/twitter-turbo/decahose/raw/decahose.2019-02-0%s.p2.bz2" % i, "2019-02-0%s.p2")
     # df = extract_info("./sample_text.txt.bz2")
     # df = extract_info("./baby.txt.bz2")
-    to_corpus(df)
+    # to_corpus(df)
 
 
 if __name__ == "__main__":
