@@ -4,7 +4,7 @@ import sys
 from collections import Counter, defaultdict
 import numpy as np
 import pandas as pd
-from gensim.models import Doc2Vec
+from gensim.models.doc2vec import Doc2Vec
 from itertools import islice
 import sklearn
 from statistics import mode, median
