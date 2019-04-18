@@ -198,9 +198,7 @@ def main():
     # extracted contains user_id, tweet_id, text, lat, lon, city, country_code, source
 
     df = read_in_extracted(
-        "/twitter-turbo/decahose/raw\
-        /decahose.2019-02-02.p1.bz2\
-        /extracted_2019-02-02")
+        "/shared/0/projects/location-inference/working-dir/textual_data/extracted_small")
 
     # get training, val, test sets
     train_df, val_df, test_df = split_train_val_test(df)
